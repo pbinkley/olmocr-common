@@ -57,8 +57,28 @@ True Speed: 26.05 tokens/sec
 
 The text will of course depend on your pdf, but the tokens/sec should be a proper reflection of your hardware. The sample output above was created on a Macbook Pro with an M4 Max chip and 48GB combined memory, running Tahoe 26.1.
 
+## Running
+
+To process a set of pdfs and get plain ocr output in a json file, put the pdfs in directory ```./docs``` and run
+
+```
+python olmocr-demo.py
+```
+
+This will process all the pdfs in ```./docs``` and write json output files into ```./results```. Output looks like this:
+
+```
+Fetching 13 files: 100%|███████████████████████████████████████████████████████████████████████████████████████| 13/13 [00:00<00:00, 37244.50it/s]
+The image processor of type `Qwen2VLImageProcessor` is now loaded as a fast processor by default, even if the model checkpoint was saved with a slow processor. This is a breaking change and may produce slightly different outputs. To continue using the slow processor, instantiate this class with `use_fast=False`. Note that this behavior will be extended to all models in a future release.
+Fetching 13 files: 100%|██████████████████████████████████████████████████████████████████████████████████████| 13/13 [00:00<00:00, 317011.35it/s]
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:17<00:00, 17.20s/it]
+```
+
+(There's still much refactoring to be done here.)
+
 ## Future Plans
 
 - detect and support other platforms (Macs with different hardware, various CUDA versions, etc.)
-- abstract all the hardware-dependent parts so that Olmocr scripts can be written once to run everywhere
+- refactor to abstract out the Mac-specific processing, so that CUDA versions can be added and selected automatically
+- handle image files directly (not just pdfs)
 - extend benchmarking to support e.g. comparing performance and output when using full-sized and quantized models, etc. etc.
