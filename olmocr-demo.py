@@ -2,8 +2,11 @@ import os
 import torch
 import platform
 import asyncio
+import base64
+import io
 import json
 import glob
+from PIL import Image
 from tqdm import tqdm
 from olmocr.pipeline import build_page_query
 #import olmocr
@@ -16,28 +19,62 @@ def get_runtime():
         return "mlx"
     return "cuda" if torch.cuda.is_available() else "cpu"
 
-async def run_mlx_inference(query):
+async def run_mlx_inference(pdf_path, query):
     """Native Apple Silicon inference using mlx-vlm."""
     from mlx_vlm import load, generate
     from mlx_vlm.utils import load_image
-    
+    from mlx_vlm.utils import load_config
+    from mlx_vlm.prompt_utils import apply_chat_template
+
     # mlx-vlm expects a specific prompt format and a PIL image or path
     model, processor = load(MODEL_ID)
+    config = load_config(MODEL_ID)
+
+    query = await build_page_query(
+        pdf_path, 
+        page=1, 
+        target_longest_image_dim=1024
+    )
     
     # olmOCR's build_page_query returns a list of messages. 
     # We extract the text prompt from the message content.
     prompt_text = ""
-    for item in query[0]["content"]:
+
+    # query format: {"model": "...", "messages": [{"role": "user", "content": [...]}]}
+    user_message = query["messages"][0]["content"]
+    
+    prompt_text = ""
+    image_base64 = ""
+    
+    for item in user_message:
         if item["type"] == "text":
             prompt_text = item["text"]
+        elif item["type"] == "image_url":
+            # Extract base64 from 'data:image/png;base64,iVBORw...'
+            image_base64 = item["image_url"]["url"].split(",")[1]
     
     # The image is stored in the 'image' attribute of the query object
-    image = query[0].get("image") or query.image 
+    image_data = base64.b64decode(image_base64)
+    pil_image = Image.open(io.BytesIO(image_data))
+
+    # This ensures special tokens like <|image_placeholder|> are placed correctly
+    formatted_prompt = apply_chat_template(
+        processor, 
+        config, 
+        prompt_text, 
+        num_images=1
+    )
     
-    formatted_prompt = f"<|user|>\n<|image_placeholder|>{prompt_text}<|assistant|>\n"
-    
-    output = generate(model, processor, image, formatted_prompt, max_tokens=2048)
-    return output
+    result = generate(
+        model, 
+        processor, 
+        formatted_prompt, 
+        [pil_image], 
+        max_tokens=2048, 
+        verbose=False
+    )
+
+    return result
 
 async def run_torch_inference(query, device):
     """Standard PyTorch inference for CUDA or CPU."""
@@ -67,14 +104,16 @@ async def process_pdf(pdf_path, output_folder):
     query = await build_page_query(pdf_path, page=1, target_longest_image_dim=1024)
 
     if runtime == "mlx":
-        result = await run_mlx_inference(query)
+        result = await run_mlx_inference(pdf_path, query)
     else:
         result = await run_torch_inference(query, runtime)
+
+    output_text = result.text if hasattr(result, "text") else str(result)
 
     # Save output
     output_path = os.path.join(output_folder, f"{file_name}.json")
     with open(output_path, "w") as f:
-        json.dump({"file": file_name, "text": result}, f, indent=4)
+        json.dump({"file": file_name, "text": output_text}, f, indent=4)
 
 async def main():
     input_dir = "./docs"
