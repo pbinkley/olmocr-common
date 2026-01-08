@@ -6,7 +6,7 @@ import psutil
 
 print(f"Python version: {sys.version}")
 print(f"Torch version: {torch.__version__}")
-print(f"System: {platform.system()}; {round(psutil.virtual_memory().total/1024**3, 2)}GB memory")
+print(f"System: {platform.system()}")
 
 try:
     import olmocr
@@ -34,7 +34,7 @@ else:
     print("❌ CUDA: Not available")
 
 if torch.cpu.is_available():
-    print(f"✅ CPU: Available: {platform.processor()}")
+    print(f"✅ CPU: Available: {platform.processor()}; {round(psutil.virtual_memory().total/1024**3, 2)}GB memory")
 else:
     print("❌ CPU: Not available")
 
