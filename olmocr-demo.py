@@ -49,7 +49,9 @@ async def process_pdf(pdf_path, output_folder):
     query = await build_page_query(pdf_path, page=1, target_longest_image_dim=1024)
 
     if runtime == "mlx":
-        result = await run_mlx_inference.run_mlx_inference(pdf_path, query, MODEL_ID)
+        from mlx_vlm import load
+        model, processor = load(MODEL_ID)
+        result = await run_mlx_inference.run_mlx_inference(pdf_path, query, MODEL_ID, False, model, processor)
     else:
         result = await run_torch_inference(query, runtime)
 

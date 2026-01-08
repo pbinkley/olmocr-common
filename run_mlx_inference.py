@@ -1,24 +1,28 @@
-async def run_mlx_inference(pdf_path, query, MODEL_ID):
+from olmocr.pipeline import build_page_query
+import base64
+from PIL import Image
+import io
+import time
+
+async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, processor):
     """Native Apple Silicon inference using mlx-vlm."""
     from mlx_vlm import load, generate
     from mlx_vlm.utils import load_image
     from mlx_vlm.utils import load_config
     from mlx_vlm.prompt_utils import apply_chat_template
 
+    if benchmarking:
+        print(f"📦 Loading {MODEL_ID}...")
+        start_load = time.time()
+
     # mlx-vlm expects a specific prompt format and a PIL image or path
-    model, processor = load(MODEL_ID)
     config = load_config(MODEL_ID)
 
-    query = await build_page_query(
-        pdf_path, 
-        page=1, 
-        target_longest_image_dim=1024
-    )
-    
-    # olmOCR's build_page_query returns a list of messages. 
-    # We extract the text prompt from the message content.
-    prompt_text = ""
+    if benchmarking:
+        print(f"✅ Loaded in {time.time() - start_load:.2f}s")
+        print(f"📄 Rendering PDF page...")
 
+    # olmOCR's build_page_query returns a list of messages. 
     # query format: {"model": "...", "messages": [{"role": "user", "content": [...]}]}
     user_message = query["messages"][0]["content"]
     
@@ -44,6 +48,12 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID):
         num_images=1
     )
     
+    if benchmarking:
+        print(f"🧠 Generating OCR (Page 1)...")
+        start_gen = time.time()
+    else:
+        start_gen = None
+
     result = generate(
         model, 
         processor, 
@@ -53,5 +63,5 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID):
         verbose=False
     )
 
-    return result
+    return result, start_gen
 
