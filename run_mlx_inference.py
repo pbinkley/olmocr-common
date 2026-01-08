@@ -26,6 +26,7 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
     # query format: {"model": "...", "messages": [{"role": "user", "content": [...]}]}
     user_message = query["messages"][0]["content"]
     
+    # get the prompt and the image out of the user_message
     prompt_text = ""
     image_base64 = ""
     
@@ -36,7 +37,6 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
             # Extract base64 from 'data:image/png;base64,iVBORw...'
             image_base64 = item["image_url"]["url"].split(",")[1]
     
-    # The image is stored in the 'image' attribute of the query object
     image_data = base64.b64decode(image_base64)
     pil_image = Image.open(io.BytesIO(image_data))
 
@@ -45,14 +45,12 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
         processor, 
         config, 
         prompt_text, 
-        num_images=1
+        num_images=1 # TODO handle multiple pages
     )
     
     if benchmarking:
         print(f"🧠 Generating OCR (Page 1)...")
         start_gen = time.time()
-    else:
-        start_gen = None
 
     result = generate(
         model, 
@@ -63,5 +61,7 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
         verbose=False
     )
 
-    return result, start_gen
+    gen_time = time.time() - start_gen
+
+    return result, gen_time
 

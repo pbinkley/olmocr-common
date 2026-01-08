@@ -24,13 +24,12 @@ async def benchmark_tahoe(pdf_path):
     
     model, processor = load(MODEL_ID)
 
-    result, start_gen = await run_mlx_inference.run_mlx_inference(pdf_path, query, MODEL_ID, True, model, processor)
-
-
-
+    # run inference
+    result, gen_time = await run_mlx_inference.run_mlx_inference(pdf_path, query, MODEL_ID, True, model, processor)
 
     # Extract the text from the object
     output_text = result.text if hasattr(result, "text") else str(result)
+    # TODO better fallback than just returning the full result object
 
     # 1. Try to get the actual token count from various possible attributes
     if hasattr(result, "num_tokens"):
@@ -44,16 +43,8 @@ async def benchmark_tahoe(pdf_path):
     # 2. Try to get the generation time
 
     if hasattr(result, "generation_time"):
-         gen_time = result.generation_time
-    else:
-        # Fallback to the time we measured with time.time()
-        gen_time = time.time() - start_gen
-
-
-#    import pdb; pdb.set_trace()
-
-#    gen_time = result.generation_time
-#    gen_time = result.generation_tps
+        gen_time = result.generation_time
+    # Fallback to the time we measured with time.time()
 
     print(f"\n--- TAHOE PERFORMANCE ---")
     print(f"Generated Tokens: {actual_tokens}")
