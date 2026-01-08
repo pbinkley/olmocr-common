@@ -29,7 +29,7 @@ else:
 
 if torch.cuda.is_available():
     cuda = torch.cuda.get_device_properties(0) # TODO handle multiple GPUs
-    print(f"✅ CUDA: Available: {cuda['name']} ({cuda['major']}.{cuda['minor']}, {cuda['total_memory']})")
+    print(f"✅ CUDA: Available: \"{cuda.name}\" ({cuda.major}.{cuda.minor}) {round(cuda.total_memory/1024**3, 2)}GB")
 else:
     print("❌ CUDA: Not available")
 
