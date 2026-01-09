@@ -13,8 +13,8 @@ import run_mlx_inference
 # Model ID
 MODEL_ID = "allenai/olmOCR-7B-0225-preview"
 
-async def benchmark_tahoe(pdf_path):
-    print(f"🚀 Benchmarking on macOS Tahoe (2026)...")
+async def benchmark(pdf_path):
+    print(f"🚀 Benchmarking...")
 
     query = await build_page_query(
         pdf_path, 
@@ -46,7 +46,7 @@ async def benchmark_tahoe(pdf_path):
         gen_time = result.generation_time
     # Fallback to the time we measured with time.time()
 
-    print(f"\n--- TAHOE PERFORMANCE ---")
+    print(f"\n--- PERFORMANCE ---")
     print(f"Generated Tokens: {actual_tokens}")
     print(f"Generation Time: {gen_time:.2f}s")
     print(f"True Speed: {actual_tokens / gen_time:.2f} tokens/sec")
