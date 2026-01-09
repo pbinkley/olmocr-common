@@ -17,7 +17,7 @@ except ImportError:
 try:
     import mlx.core as mx
     import mlx_vlm
-    print(f"✅ MLX Available (Device: {mx.default_device()})")
+    print(f"✅ MLX Available (Device: {mx.default_device()}) Unified memory: {psutil.virtual_memory().total / (1024**3)}GB")
     print("✅ mlx-vlm: Found")
 except ImportError as e:
     print(f"❌ MLX: Not Available")
