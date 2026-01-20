@@ -5,10 +5,9 @@ import base64
 import io
 from PIL import Image
 from olmocr.pipeline import build_page_query
-from mlx_vlm import load, generate
-from mlx_vlm.utils import load_config
-from mlx_vlm.prompt_utils import apply_chat_template
-import run_mlx_inference
+
+from run_inference_mlx import * # TODO add the rest
+from shared_resources import *
 
 # Model ID
 MODEL_ID = "allenai/olmOCR-7B-0225-preview"
@@ -22,10 +21,11 @@ async def benchmark(pdf_path):
         target_longest_image_dim=1024
     )
     
-    model, processor = load(MODEL_ID)
+    platform = "mlx"
 
     # run inference
-    result, gen_time = await run_mlx_inference.run_mlx_inference(pdf_path, query, MODEL_ID, True, model, processor)
+    if platform == "mlx":
+        result, gen_time, processor = await run_inference(platform, query, MODEL_ID, True, pdf_path)
 
     # Extract the text from the object
     output_text = result.text if hasattr(result, "text") else str(result)
@@ -47,6 +47,7 @@ async def benchmark(pdf_path):
     # Fallback to the time we measured with time.time()
 
     print(f"\n--- PERFORMANCE ---")
+    print(f"Platform: {platform}")
     print(f"Generated Tokens: {actual_tokens}")
     print(f"Generation Time: {gen_time:.2f}s")
     print(f"True Speed: {actual_tokens / gen_time:.2f} tokens/sec")
@@ -55,6 +56,6 @@ async def benchmark(pdf_path):
 if __name__ == "__main__":
     # Ensure sample.pdf exists in your folder
     if os.path.exists("docs/sample.pdf"):
-        asyncio.run(benchmark_tahoe("docs/sample.pdf"))
+        asyncio.run(benchmark("docs/sample.pdf"))
     else:
         print("❌ Please put a 'sample.pdf' in this folder.")

@@ -4,9 +4,11 @@ from importlib.metadata import version
 import platform
 import psutil
 
+import shared_resources
+
 print(f"Python version: {sys.version}")
 print(f"Torch version: {torch.__version__}")
-print(f"System: {platform.system()}")
+print(f"System: {platform.system()}; Machine: {platform.machine()}")
 
 try:
     import olmocr
@@ -17,15 +19,15 @@ except ImportError:
 try:
     import mlx.core as mx
     import mlx_vlm
-    print(f"✅ MLX Available (Device: {mx.default_device()}) Unified memory: {psutil.virtual_memory().total / (1024**3)}GB")
+    print(f"✅ MLX available (Device: {mx.default_device()}) Unified memory: {psutil.virtual_memory().total / (1024**3)}GB")
     print("✅ mlx-vlm: Found")
 except ImportError as e:
-    print(f"❌ MLX: Not Available")
+    print(f"❌ MLX: Not available")
 
 if torch.backends.mps.is_available():
     print("✅ MPS: Available")
 else:
-    print("❌ MPS: Not Available")    
+    print("❌ MPS: Not available")    
 
 if torch.cuda.is_available():
     cuda = torch.cuda.get_device_properties(0) # TODO handle multiple GPUs

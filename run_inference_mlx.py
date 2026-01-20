@@ -4,16 +4,20 @@ from PIL import Image
 import io
 import time
 
-async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, processor):
+async def run_inference(platform, query, MODEL_ID, benchmarking, pdf_path):
     """Native Apple Silicon inference using mlx-vlm."""
     from mlx_vlm import load, generate
     from mlx_vlm.utils import load_image
     from mlx_vlm.utils import load_config
     from mlx_vlm.prompt_utils import apply_chat_template
 
+    import pdb; pdb.set_trace()
+
     if benchmarking:
         print(f"📦 Loading {MODEL_ID}...")
         start_load = time.time()
+
+    model, processor = load(MODEL_ID)
 
     # mlx-vlm expects a specific prompt format and a PIL image or path
     config = load_config(MODEL_ID)
@@ -33,6 +37,7 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
     for item in user_message:
         if item["type"] == "text":
             prompt_text = item["text"]
+            print(prompt_text)
         elif item["type"] == "image_url":
             # Extract base64 from 'data:image/png;base64,iVBORw...'
             image_base64 = item["image_url"]["url"].split(",")[1]
@@ -61,7 +66,9 @@ async def run_mlx_inference(pdf_path, query, MODEL_ID, benchmarking, model, proc
         verbose=False
     )
 
-    gen_time = time.time() - start_gen
+    if benchmarking:
+        gen_time = time.time() - start_gen
+    else:
+        gen_time = None
 
-    return result, gen_time
-
+    return result, gen_time, processor
