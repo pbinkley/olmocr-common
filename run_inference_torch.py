@@ -1,4 +1,4 @@
-async def run_inference(platform, query, MODEL_ID, benchmarking, pdf_path):
+async def run_inference(device, query, MODEL_ID, benchmarking, pdf_path):
 # async def run_torch_inference(query, device):
     """Standard PyTorch inference for CUDA or CPU."""
     from transformers import AutoProcessor, AutoModelForVision2Seq

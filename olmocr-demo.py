@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 import asyncio
 import base64
@@ -12,7 +13,7 @@ from termcolor import colored, cprint
 
 #import olmocr
 
-from shared_resources import *
+from shared_resources import get_device, print_announcement
 
 # Model ID
 MODEL_ID = "allenai/olmOCR-7B-0225-preview"
@@ -22,6 +23,8 @@ MODEL_ID = "allenai/olmOCR-7B-0225-preview"
 
 async def process_pdf(pdf_path, output_folder):
     device = get_device()
+    print(sys.modules['run_inference_mps'])
+
     print_announcement(f"Device: {device}")
     file_name = os.path.basename(pdf_path)
     print_announcement(f"File: {file_name}")
@@ -35,7 +38,7 @@ async def process_pdf(pdf_path, output_folder):
     if device == "mlx":
         result, gen_time, processor = await run_inference.run_inference(device, pdf_path, query, MODEL_ID, False)
     else:
-        result = await run_torch_inference(query, device)
+        result = await run_inference.run_inference(query, device)
 
     print_announcement("Have result")
 

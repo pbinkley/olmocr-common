@@ -11,7 +11,7 @@ async def run_inference(platform, query, MODEL_ID, benchmarking, pdf_path):
     from mlx_vlm.utils import load_config
     from mlx_vlm.prompt_utils import apply_chat_template
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     if benchmarking:
         print(f"📦 Loading {MODEL_ID}...")
